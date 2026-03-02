@@ -20,7 +20,7 @@ namespace DragonBot.Core
             try
             {
                 Type moduleClassType = module.GetMethodInfo().DeclaringType ?? throw new ModuleRegistrationExeption("Error getting declared type of module.", true);
-                //var dependecies = moduleClassType.GetProperty("Dependecies")!.GetValue(null); //add null check
+                List<string> dependecies = await GetDependancies(name, moduleClassType);
                 Modules.Add(name, module);
                 await Logger.Log($"Sucessfully registered module {name}.", LogSeverity.Info);
                 return RegistrationState.Success;
@@ -46,6 +46,22 @@ namespace DragonBot.Core
                     await Logger.Log($"Exeption {ex} thrown in registration for module {name}.", LogSeverity.Error);
                 }
                 return RegistrationState.ErrorThrown;
+            }
+            static async Task<List<string>> GetDependancies(string name, Type type)
+            {
+                try
+                {
+                    return (List<string>?)(type?.GetProperty("Dependecies")?.GetValue(null)) ?? [];
+                }
+                catch (TargetException)
+                {
+                    await Logger.Log($"No dependancies found for module {name}.", LogSeverity.Info);
+                    return [];
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
             }
         }
         internal static Dictionary<string, ModuleBase> GetRequestedModules(Bot bot, List<string> requestedModules)
@@ -129,38 +145,10 @@ namespace DragonBot.Core
                         default:
                             throw new NotImplementedException();
                     }
-                    
                 }
             }
         }
-        /*private async void test()
-        {
-            var state = await ModuleRegistrar.Register(meta.Name, MethodBase.GetCurrentMethod()?.DeclaringType?.GetMethod("Create")?.CreateDelegate<Action>());
-            if (state == RegistrationState.Success)
-            {
-                await Program.Log($"{Name} registered successfully.", LogSeverity.Info);
-            }
-            else
-            {
-                
-            }
-        }*/
     }
-    /*[HarmonyPatch(typeof(ModuleBase))]
-    [HarmonyPatch(nameof(ModuleBase.Register))]
-    internal class ModuleInitilaizer()
-    {
-        internal static void Patch()
-        {
-            var harmony = new Harmony("ModuleInit");
-            harmony.PatchAll();
-        }
-        internal static void Prefix(ModuleBase __originalMethod)
-        {
-            //Program.Log("HarmonyPatch", LogSeverity.Debug);
-            AsyncContext.Run(() => Program.Log("HarmonyPatch", LogSeverity.Debug));
-        }
-    }*/
     [Serializable]
     internal class ModuleRegistrationExeption : Exception
     {

@@ -58,7 +58,7 @@ namespace DragonBot.Instance
         }
         public async Task Ready()
         {
-            if (BotConfig.GuildId is 0)
+            if (BotConfig.GuildId == 0)
             {
                 BotConfig.GuildId = Client.Guilds.FirstOrDefault()?.Id ?? 0;
                 SaveConfig();

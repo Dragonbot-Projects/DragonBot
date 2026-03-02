@@ -20,9 +20,9 @@ namespace DragonBot.Modules
         private RoleButtonMessage(Bot bot) : base(bot)
         {
             bot.Client.SlashCommandExecuted += HandleCommands;
-            if (bot.BotConfig.ModuleConfigs.TryGetValue(Name, out var obj) && obj is Dictionary<string, RoleButtonMessageConfig> configs)
+            if (bot.BotConfig.ModuleConfigs.TryGetValue(Name, out var configs))
             {
-                MessageConfigs = configs;
+                MessageConfigs = configs as Dictionary<string, RoleButtonMessageConfig> ?? [];
             }
         }
         public async void RegisterCommands()
@@ -108,6 +108,11 @@ namespace DragonBot.Modules
                     configKey = message.Id.ToString();
                 }
                 MessageConfigs.Add(configKey!, new RoleButtonMessageConfig(message.Id, channel.Id, options.First(option => option.Name is "title").Value.ToString() ?? string.Empty, []));
+                if (!bot.BotConfig.ModuleConfigs.TryAdd(Name, MessageConfigs))
+                {
+                    bot.BotConfig.ModuleConfigs.TryGetValue(Name, out var ModuleConfig);
+                    ModuleConfig = MessageConfigs;
+                }
                 bot.SaveConfig();
             }
             else if (commandName is "add-button" or "remove-button")
@@ -126,9 +131,9 @@ namespace DragonBot.Modules
                 {
                     config.Buttons.Remove(RoleId);
                 }
-                RefreshMessageComponents(Guild, config, Emote);
+                await RefreshMessageComponents(Guild, config, Emote);
             }
-            async void RefreshMessageComponents(SocketGuild Guild, RoleButtonMessageConfig config, string? emote)
+            async Task RefreshMessageComponents(SocketGuild Guild, RoleButtonMessageConfig config, string? emote)
             {
                 ComponentBuilderV2 builder = new();
                 List<ButtonBuilder> actionRows = [];
