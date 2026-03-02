@@ -50,7 +50,7 @@ namespace DragonBot.Instance
         internal static async Task<Bot> Create(string botName, string? token = null)
         {
             Bot bot = new(botName, token);
-            bot.Client.Log += Log;
+            bot.Client.Log += Logger.Log;
             await bot.Client.LoginAsync(TokenType.Bot, bot.BotConfig.Token);
             await bot.Client.StartAsync();
             bot.Client.Ready += bot.Ready;

@@ -22,7 +22,7 @@ namespace DragonBot.Core
                 Type moduleClassType = module.GetMethodInfo().DeclaringType ?? throw new ModuleRegistrationExeption("Error getting declared type of module.", true);
                 //var dependecies = moduleClassType.GetProperty("Dependecies")!.GetValue(null); //add null check
                 Modules.Add(name, module);
-                await Program.Log($"Sucessfully registered module {name}.", LogSeverity.Info);
+                await Logger.Log($"Sucessfully registered module {name}.", LogSeverity.Info);
                 return RegistrationState.Success;
             }
             catch (Exception ex)
@@ -31,19 +31,19 @@ namespace DragonBot.Core
                 {
                     if (exeption.Fatal)
                     {
-                        await Program.Log($"ModuleRegistrationExeption thrown in registration of module {name} with reason {ex.Message}. This is a fatal error and should never happen. Program will now exit.", LogSeverity.Critical);
+                        await Logger.Log($"ModuleRegistrationExeption thrown in registration of module {name} with reason {ex.Message}. This is a fatal error and should never happen. Program will now exit.", LogSeverity.Critical);
                         Environment.Exit(-1);
                     }
-                    await Program.Log($"ModuleRegistrationExeption thrown in registration of module {name} with reason {ex.Message}.", LogSeverity.Error);
+                    await Logger.Log($"ModuleRegistrationExeption thrown in registration of module {name} with reason {ex.Message}.", LogSeverity.Error);
                 }
                 else if (name.StartsWith("Core:"))
                 {
-                    await Program.Log($"Exeption {ex} thrown in registration for core module {name}. This is a fatal error and should never happen. Program will now exit.", LogSeverity.Critical);
+                    await Logger.Log($"Exeption {ex} thrown in registration for core module {name}. This is a fatal error and should never happen. Program will now exit.", LogSeverity.Critical);
                     Environment.Exit(-1);
                 }
                 else
                 {
-                    await Program.Log($"Exeption {ex} thrown in registration for module {name}.", LogSeverity.Error);
+                    await Logger.Log($"Exeption {ex} thrown in registration for module {name}.", LogSeverity.Error);
                 }
                 return RegistrationState.ErrorThrown;
             }
@@ -82,7 +82,7 @@ namespace DragonBot.Core
                     }
                     catch (Exception ex)
                     {
-                        AsyncContext.Run(() => Program.Log($"Exception initializing module {loadedModule.Key} ({moduleType.FullName}): {ex}", LogSeverity.Error));
+                        AsyncContext.Run(() => Logger.Log($"Exception initializing module {loadedModule.Key} ({moduleType.FullName}): {ex}", LogSeverity.Error));
                     }
                 }
             }
@@ -110,7 +110,7 @@ namespace DragonBot.Core
                 var createMethod = (Func<Bot, ModuleBase>)Delegate.CreateDelegate(typeof(Func<Bot, ModuleBase>), target.GetMethod("Create")!);
                 if(name is null || createMethod is null)
                 {
-                    AsyncContext.Run(() => Program.Log($"Invalid Module (Name:{name} createMethod:{createMethod}).", LogSeverity.Error));
+                    AsyncContext.Run(() => Logger.Log($"Invalid Module (Name:{name} createMethod:{createMethod}).", LogSeverity.Error));
                 }
                 else
                 {
@@ -121,7 +121,7 @@ namespace DragonBot.Core
                         case RegistrationState.ErrorThrown:
                             break;
                         case RegistrationState.AlreadyRegistered:
-                            AsyncContext.Run(() => Program.Log($"Module {name} has already been registered. Did you forget to namespace your modules name. (ex: yourname:modulename)", LogSeverity.Warning));
+                            AsyncContext.Run(() => Logger.Log($"Module {name} has already been registered. Did you forget to namespace your modules name. (ex: yourname:modulename)", LogSeverity.Warning));
                             break;
                         case RegistrationState.MissingDependencies:
 

@@ -67,12 +67,12 @@ namespace DragonBot.Modules
                 catch (ApplicationCommandException ex)
                 {
                     var json = JsonSerializer.Serialize(ex.Errors);
-                    await Program.Log($@"ApplicationCommandException thrown during command registration for command {builder.Name}
+                    await Logger.Log($@"ApplicationCommandException thrown during command registration for command {builder.Name}
                     Errors reported: {json}", LogSeverity.Error);
                 }
                 catch (Exception ex)
                 {
-                    await Program.Log($"Exeption {ex} thrown during command registration for command {builder.Name}", LogSeverity.Error);
+                    await Logger.Log($"Exeption {ex} thrown during command registration for command {builder.Name}", LogSeverity.Error);
                 }
 #pragma warning restore CS0618 // Type or member is obsolete
             }

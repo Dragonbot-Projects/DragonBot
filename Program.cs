@@ -1,5 +1,4 @@
-﻿using Discord;
-using DragonBot.Core;
+﻿using DragonBot.Core;
 using DragonBot.Instance;
 using DragonBot.Modules;
 using System.Runtime.CompilerServices;
@@ -72,20 +71,7 @@ namespace DragonBot
                 await Bot.Create("DragonBot");
             }
         }
-        internal static async Task Log(LogMessage logMessage)
-        {
-            Directory.CreateDirectory(Settings!.LogDir);
-            await using StreamWriter outputFile = new(Path.Combine(Settings!.LogDir, "latest.log"));
-            await outputFile.WriteAsync($"{DateTime.Now} {logMessage.Severity}:{logMessage.Message}");
-            await Task.CompletedTask;
-        }
-        internal static async Task Log(string message, LogSeverity severity)
-        {
-            Directory.CreateDirectory(Settings!.LogDir);
-            await using StreamWriter outputFile = new(Path.Combine(Settings!.LogDir, "latest.internal.log"));
-            await outputFile.WriteAsync($"{DateTime.Now} {severity}:{message}");
-            await Task.CompletedTask;
-        }
+
         internal record GlobalSettings([property: JsonPropertyName("singleInstance")] bool SingleInstance = true)
         {
             [property: JsonPropertyName("baseDirectory")]
