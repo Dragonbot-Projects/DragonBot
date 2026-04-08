@@ -44,6 +44,11 @@ namespace DragonBot.Modules
                         .AddOption("title", ApplicationCommandOptionType.String, "The title of the role button message", true)
                         .AddOption("name", ApplicationCommandOptionType.String, "Optional Name to assign to the message", false)
                     ).AddOption(new SlashCommandOptionBuilder()
+                        .WithName("remove-message")
+                        .WithDescription("Removes a role button message")
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                        .AddOption("message-id", ApplicationCommandOptionType.String, "The ID or Name of the role button message", true)
+                    ).AddOption(new SlashCommandOptionBuilder()
                         .WithName("add-button")
                         .WithDescription("Adds a button to an existing role button message")
                         .WithType(ApplicationCommandOptionType.SubCommand)
@@ -57,6 +62,10 @@ namespace DragonBot.Modules
                         .WithType(ApplicationCommandOptionType.SubCommand)
                         .AddOption("message-id", ApplicationCommandOptionType.String, "The ID or Name of the role button message", true)
                         .AddOption("role", ApplicationCommandOptionType.Role, "The role assigned to the button to remove", true)
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithName("list-messages")
+                        .WithDescription("lists all role button messages")
+                        .WithType(ApplicationCommandOptionType.SubCommand)
                     );
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -129,9 +138,28 @@ namespace DragonBot.Modules
                 }
                 else if (commandName is "remove-button")
                 {
-                    config.Buttons.Remove(RoleId);
+                    if (!config.Buttons.Remove(RoleId))
+                    {
+                        await command.RespondAsync($"No button for the role {options!.First(option => option.Name is "role").Value} exists.", ephemeral: true);
+                        return;
+                    }
                 }
-                await RefreshMessageComponents(Guild, config, Emote);
+                await RefreshMessageComponents(Guild, config);
+                await command.RespondAsync($"Button {(commandName is "add-button" ? "added" : "removed")} successfully.", ephemeral: true);
+            }
+            else if (commandName is "list-messages")
+            {
+                if (MessageConfigs.Count == 0)
+                {
+                    await command.RespondAsync("No role button messages have been created yet.", ephemeral: true);
+                    return;
+                }
+                string response = "Role Button Messages:\n";
+                foreach (var kvp in MessageConfigs)
+                {
+                    response += $"Name: {kvp.Key}, Message ID: {kvp.Value.MessageId}, Channel ID: {kvp.Value.ChannelId}, Title: {kvp.Value.Title}\n";
+                }
+                await command.RespondAsync(response, ephemeral: true);
             }
             async Task RefreshMessageComponents(SocketGuild Guild, RoleButtonMessageConfig config, string? emote)
             {
