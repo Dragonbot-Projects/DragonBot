@@ -6,11 +6,10 @@ namespace DragonBot.Instance
     public sealed class RoleManager
     {
         private readonly Bot bot;
-        private SocketGuild Guild { get; }
+        public SocketGuild Guild { get => field ??= bot.Client.GetGuild(bot.BotConfig.GuildID); }
         internal RoleManager(Bot bot)
         {
             this.bot = bot;
-            Guild = bot.Client.GetGuild(bot.BotConfig.GuildId);
         }
         public static async Task AddRole(IGuildUser User, IRole role)
         {
@@ -27,12 +26,12 @@ namespace DragonBot.Instance
         }
         public string IdToName(ulong roleId)
         {
-            var role = bot.Client.GetGuild(bot.BotConfig.GuildId).GetRole(roleId);
+            var role = bot.Client.GetGuild(bot.BotConfig.GuildID).GetRole(roleId);
             return role.Name;
         }
         public ulong NameToId(string roleName)
         {
-            var role = bot.Client.GetGuild(bot.BotConfig.GuildId).Roles.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            var role = bot.Client.GetGuild(bot.BotConfig.GuildID).Roles.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             return role?.Id ?? 0;
         }
     }
