@@ -9,7 +9,11 @@
         }
         public bool IsCommandRegistered(string commandName)
         {
-            return bot.Client.GetGuild(bot.BotConfig.GuildId).GetApplicationCommandsAsync().Result
+            if (bot.BotConfig.RefreshCommands)
+            {
+                return false;
+            }
+            return bot.Client.GetGuild(bot.BotConfig.GuildID).GetApplicationCommandsAsync().Result
                 .Any(cmd => cmd.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase));
         }
     }
