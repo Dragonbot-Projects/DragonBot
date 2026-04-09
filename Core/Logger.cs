@@ -5,7 +5,7 @@ namespace DragonBot.Core
 {
     public static class Logger
     {
-        private static readonly StreamWriter Writer = new(Path.Combine(Program.Settings!.LogDir, "latest.log"));
+        private static readonly StreamWriter Writer = new(Path.Combine(Program.Settings!.LogDirectory, "latest.log"));
         public static async Task Log(LogMessage logMessage)
         {
             await WriteLog($"[{DateTime.Now}] {logMessage.Severity}: {logMessage.Message}");
@@ -18,7 +18,7 @@ namespace DragonBot.Core
         }
         private static async Task WriteLog(string message)
         {
-            Directory.CreateDirectory(Program.Settings!.LogDir);
+            Directory.CreateDirectory(Program.Settings!.LogDirectory);
             await Writer.WriteAsync(message);
             await Task.CompletedTask;
         }
