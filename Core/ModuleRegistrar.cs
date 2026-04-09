@@ -137,7 +137,7 @@ namespace DragonBot.Core
                         case RegistrationState.ErrorThrown:
                             break;
                         case RegistrationState.AlreadyRegistered:
-                            AsyncContext.Run(() => Logger.Log($"Module {name} has already been registered. Did you forget to namespace your modules name. (ex: yourname:modulename)", LogSeverity.Warning));
+                            AsyncContext.Run(() => Logger.Log($"Module {name} has already been registered. Did you forget to namespace your modules name. (ex: yourname_modulename)", LogSeverity.Warning));
                             break;
                         case RegistrationState.MissingDependencies:
 
