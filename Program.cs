@@ -42,27 +42,26 @@ namespace DragonBot
             {
                 using StreamReader r = new(Path.Combine(DefaultBaseDir, "settings.json"));
                 string json = r.ReadToEnd();
-                Settings = JsonSerializer.Deserialize<GlobalSettings>(json) ?? new() { BaseDir = DefaultBaseDir };
+                Settings = JsonSerializer.Deserialize<GlobalSettings>(json) ?? new() { BaseDirectory = DefaultBaseDir };
             }
             else
             {
-                Settings = new() { BaseDir = DefaultBaseDir };
+                Settings = new() { BaseDirectory = DefaultBaseDir };
                 using StreamWriter w = new(Path.Combine(AppContext.BaseDirectory, "settings.json"));
                 w.Write(JsonSerializer.Serialize(Settings));
             }
-            Directory.CreateDirectory(Settings.InstanceConfigDir);
-            //ModuleInitilaizer.Patch();
+            Directory.CreateDirectory(Settings.InstanceConfigsDirectory);
             RegisterModuleAttribute.RegisterModules();
             //TEMP HACK TO LOAD MODULES
             ModuleMain.InitAssembly();
         }
         private static async Task Run()
         {
-            var configs = Directory.EnumerateFiles(Settings!.InstanceConfigDir);
+            var configs = Directory.EnumerateFiles(Settings!.InstanceConfigsDirectory).Where((config) => Path.GetExtension(config) == ".json") ;
             if (configs.Any())
             {
                 foreach (var config in configs)
-                {
+                {//fix running twice
                     await Bot.Create(Path.GetFileNameWithoutExtension(config));
                 }
             }
@@ -71,15 +70,18 @@ namespace DragonBot
                 await Bot.Create("DragonBot");
             }
         }
-
-        internal record GlobalSettings([property: JsonPropertyName("singleInstance")] bool SingleInstance = true)
+        internal enum InvalidConfigBehavior
         {
-            [property: JsonPropertyName("baseDirectory")]
-            internal required string BaseDir { get; init; } = AppContext.BaseDirectory;
-            [property: JsonPropertyName("logDirectory")]
-            internal string LogDir { get => field ??= Path.Combine(BaseDir, "logs"); init; }
-            [property: JsonPropertyName("instanceConfigsDirectory")]
-            internal string InstanceConfigDir { get => field ??= Path.Combine(BaseDir, "instances"); init; }
+            Reset,
+            Skip,
+            Exit
+        }
+
+        internal record GlobalSettings(bool SingleInstance = true, InvalidConfigBehavior InvalidConfigBehavior = InvalidConfigBehavior.Exit)
+        {
+            internal required string BaseDirectory { get; init; } = AppContext.BaseDirectory;
+            internal string LogDirectory { get => field ??= Path.Combine(BaseDirectory, "logs"); init; }
+            internal string InstanceConfigsDirectory { get => field ??= Path.Combine(BaseDirectory, "instances"); init; }
         }
         extension<TKey, TValue>(Dictionary<TKey, TValue> dest)
             where TKey : notnull
