@@ -5,6 +5,8 @@ using Discord;
 using System.Text.Json.Serialization;
 using DragonBot.Core;
 using DragonBot.Modules;
+using Nito.AsyncEx;
+
 
 
 
@@ -16,6 +18,12 @@ namespace DragonBot.Instance
 {
     public sealed class Bot
     {
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        };
+
         public BotConfig BotConfig { get; init; }
         public DiscordSocketClient Client { get; } = new();
         public MicroBus Bus { get; } = new();
@@ -31,56 +39,74 @@ namespace DragonBot.Instance
                 .Build();
             DefaultToken = config.GetSection("BotToken").Value!;
 #endif
-            if (File.Exists(Path.Combine(Settings!.InstanceConfigDir, $"{botName}.json")))
+            if (File.Exists(Path.Combine(Settings!.InstanceConfigsDirectory, $"{botName}.json")))
             {
-                using StreamReader r = new(Path.Combine(Settings!.InstanceConfigDir, $"{botName}.json"));
+                using StreamReader r = new(Path.Combine(Settings!.InstanceConfigsDirectory, $"{botName}.json"));
                 string json = r.ReadToEnd();
-                BotConfig = JsonSerializer.Deserialize<BotConfig>(json)!;
+                var test = JsonSerializer.Deserialize<BotConfig>(json, JsonOptions);
+                try
+                {
+                    BotConfig = JsonSerializer.Deserialize<BotConfig>(json, JsonOptions)!;
+                }
+                catch (JsonException ex)
+                {
+                    if (Settings.InvalidConfigBehavior is InvalidConfigBehavior.Exit)
+                    {
+                        AsyncContext.Run(() => Logger.Log($"Invalid config for Bot {botName}.\n{ex}", LogSeverity.Critical));
+                        Environment.Exit(-1);
+                    }
+                    else
+                    {
+                        AsyncContext.Run(() => Logger.Log($"Invalid config for Bot {botName}. Resetting config to default. \n{ex}", LogSeverity.Error));
+                        BotConfig = new() { DiscordToken = token ?? DefaultToken, EnabledModules = [] };
+                        AsyncContext.Run(() => SaveConfig());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AsyncContext.Run(() => Logger.Log($"Unexpected error loading config for Bot {botName}.\n{ex}", LogSeverity.Error));
+                    Environment.Exit(-1);
+                }
             }
             else
             {
-                BotConfig = new() { Token = token ?? DefaultToken};
-                SaveConfig();
+                BotConfig = new() { DiscordToken = token ?? DefaultToken, EnabledModules = [] };
+                AsyncContext.Run(() => SaveConfig());
             }
             RoleManager = new(this);
             Util = new(this);
-            LoadedModules = ModuleRegistrar.GetRequestedModules(this, BotConfig.EnabledModules);
+            LoadedModules = ModuleRegistrar.GetRequestedModules(this, BotConfig.EnabledModules!);
 
         }
         internal static async Task<Bot> Create(string botName, string? token = null)
         {
             Bot bot = new(botName, token);
             bot.Client.Log += Logger.Log;
-            await bot.Client.LoginAsync(TokenType.Bot, bot.BotConfig.Token);
+            await bot.Client.LoginAsync(TokenType.Bot, bot.BotConfig.DiscordToken);
             await bot.Client.StartAsync();
             bot.Client.Ready += bot.Ready;
             return bot;
         }
         public async Task Ready()
         {
-            if (BotConfig.GuildId == 0)
+            if (BotConfig.GuildID == 0)
             {
-                BotConfig.GuildId = Client.Guilds.FirstOrDefault()?.Id ?? 0;
-                SaveConfig();
+                BotConfig.GuildID = Client.Guilds.FirstOrDefault()?.Id ?? 0;
+                await SaveConfig();
             }
             ModuleRegistrar.InitializeModules(LoadedModules);
         }
-        public void SaveConfig()
+        private async Task SaveConfig()
         {
-            string path = Path.Combine(Settings!.InstanceConfigDir, $"{BotConfig.BotName}.json");
-            using StreamWriter w = new(path);
+            string path = Path.Combine(Settings!.InstanceConfigsDirectory, $"{BotConfig.BotName}.json");
+            await using StreamWriter w = new(path);
             w.Write(JsonSerializer.Serialize(BotConfig));
         }
     }
-    public record BotConfig([property: JsonPropertyName("LoggingEnabled")] bool Logging = true, [property: JsonPropertyName("DiscordToken")] string? Token = null)
+    public record BotConfig(bool LoggingEnabled = true, bool RefreshCommands = false, string? DiscordToken = null)
     {
-        [property: JsonPropertyName("BotName")]
-        public string BotName { get => field ??= "DragonBot"; }
-        [property: JsonPropertyName("EnabledModules")]
-        public List<string> EnabledModules { get; } = ["Core:RoleButtonMessage"]; //FIXME: Remove hardcoding
-        [property: JsonPropertyName("ModuleConfigs")]
-        public Dictionary<string, object> ModuleConfigs { get; } = [];
-        [property: JsonPropertyName("GuildID")]
-        public ulong GuildId { get; internal set; }
+        public string BotName { get; init; } = "DragonBot";
+        public ulong GuildID { get; internal set; }
+        public required List<string> EnabledModules { get; init;  }
     }
 }
