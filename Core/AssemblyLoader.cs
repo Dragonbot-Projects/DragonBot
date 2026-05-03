@@ -62,4 +62,41 @@ namespace DragonBot.Core
             };
         }
     }
+    [AttributeUsage(AttributeTargets.Class)]
+    public class RegisterModuleAttribute : Attribute
+    {
+        public static void RegisterModules()
+        {
+            var targets = AssemblyLoader.GetAssemblies()
+                .Where(x => !AssemblyLoader.FailedAssemblies.Contains(x.FullName!))
+                .SelectMany(x => x.GetTypes())
+                .Where(x => x.IsClass && x.IsSubclassOf(typeof(ModuleBase)) && x.GetCustomAttributes(typeof(RegisterModuleAttribute), false).Length != 0);
+            foreach (var target in targets)
+            {
+                var name = target.GetProperty("Name")!.GetValue(null) as string;
+                var createMethod = (Func<Bot, ModuleBase>)Delegate.CreateDelegate(typeof(Func<Bot, ModuleBase>), target.GetMethod("Create")!);
+                if (name is null || createMethod is null)
+                {
+                    AsyncContext.Run(() => Logger.Log($"Invalid Module (Name:{name} createMethod:{createMethod}).", LogSeverity.Error));
+                }
+                else
+                {
+                    switch (AsyncContext.Run(() => ModuleRegistrar.Register(name, createMethod)))
+                    {
+                        case RegistrationState.Success:
+                            break;
+                        case RegistrationState.ErrorThrown:
+                            break;
+                        case RegistrationState.AlreadyRegistered:
+                            AsyncContext.Run(() => Logger.Log($"Module {name} has already been registered. Did you forget to namespace your modules name. (ex: yourname_modulename)", LogSeverity.Warning));
+                            break;
+                        case RegistrationState.MissingDependencies:
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+            }
+        }
+    }
 }
