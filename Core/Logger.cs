@@ -20,6 +20,7 @@ namespace DragonBot.Core
         {
             Directory.CreateDirectory(Program.Settings!.LogDirectory);
             await Writer.WriteAsync(message);
+            Writer.Flush();
             await Task.CompletedTask;
         }
     }
