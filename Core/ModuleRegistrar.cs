@@ -10,7 +10,7 @@ namespace DragonBot.Core
     public static class ModuleRegistrar
     {
         private static readonly Dictionary<string, Func<Bot, ModuleBase>> Modules = [];
-        public static Dictionary<Type, Action<object>> Initializers = [];
+        public static Dictionary<Type, Action<object>> Initializers { get; set; } = [];
         internal static async Task<RegistrationState> Register(string name, Func<Bot, ModuleBase> module)
         {
             if (Modules.ContainsKey(name))
