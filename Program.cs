@@ -24,20 +24,6 @@ namespace DragonBot
         internal static void Init()
         {
             string DefaultBaseDir = AppContext.BaseDirectory;
-/*#if DEBUG
-            if (Directory.Exists(Path.Combine(DefaultBaseDir, "instances")))
-            {
-                Directory.Delete(Path.Combine(DefaultBaseDir, "instances"), true);
-            }
-            if (Directory.Exists(Path.Combine(DefaultBaseDir, "logs")))
-            {
-                Directory.Delete(Path.Combine(DefaultBaseDir, "logs"), true);
-            }
-            if (File.Exists(Path.Combine(DefaultBaseDir, "settings.json")))
-            {
-                File.Delete(Path.Combine(DefaultBaseDir, "settings.json"));
-            }
-#endif*/
             if (File.Exists(Path.Combine(DefaultBaseDir, "settings.json")))
             {
                 using StreamReader r = new(Path.Combine(DefaultBaseDir, "settings.json"));
@@ -52,8 +38,6 @@ namespace DragonBot
             }
             Directory.CreateDirectory(Settings.InstanceConfigsDirectory);
             RegisterModuleAttribute.RegisterModules();
-            //TEMP HACK TO LOAD MODULES
-            ModuleMain.InitAssembly();
         }
         private static async Task Run()
         {
@@ -61,7 +45,7 @@ namespace DragonBot
             if (configs.Any())
             {
                 foreach (var config in configs)
-                {//fix running twice
+                {
                     await Bot.Create(Path.GetFileNameWithoutExtension(config));
                 }
             }
