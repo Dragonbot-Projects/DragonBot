@@ -1,5 +1,4 @@
 ﻿using Discord;
-using DragonBot;
 
 namespace DragonBot.Core
 {

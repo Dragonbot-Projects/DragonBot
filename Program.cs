@@ -1,9 +1,7 @@
 ﻿using DragonBot.Core;
 using DragonBot.Instance;
-using DragonBot.Modules;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DragonBot
 {

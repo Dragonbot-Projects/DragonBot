@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DragonBot.Modules
+﻿namespace DragonBot.Modules
 {
     public interface IModuleMain
     {

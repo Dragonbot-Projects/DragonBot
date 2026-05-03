@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
-using DragonBot;
 using DragonBot.Core;
 using DragonBot.Instance;
 using DragonBot.Modules;
