@@ -20,6 +20,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="bin\**" />
+    <Compile Remove="DragonBot.CoreModules\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <EmbeddedResource Remove="DragonBot.CoreModules\**" />
+    <None Remove="bin\**" />
+    <None Remove="DragonBot.CoreModules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="3.19.1" />
     <PackageReference Include="KGySoft.CoreLibraries" Version="10.5.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.5" />
