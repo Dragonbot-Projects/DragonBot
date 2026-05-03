@@ -37,6 +37,8 @@ namespace DragonBot
                 w.Write(JsonSerializer.Serialize(Settings));
             }
             Directory.CreateDirectory(Settings.InstanceConfigsDirectory);
+            AssemblyLoader.LoadAssemblies();
+            AssemblyLoader.InitAssemblies();
             RegisterModuleAttribute.RegisterModules();
         }
         private static async Task Run()
