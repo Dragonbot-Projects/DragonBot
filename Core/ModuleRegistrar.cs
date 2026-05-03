@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace DragonBot.Core
 {
-    internal static class ModuleRegistrar
+    public static class ModuleRegistrar
     {
         private static readonly Dictionary<string, Func<Bot, ModuleBase>> Modules = [];
         public static Dictionary<Type, Action<object>> Initializers = [];

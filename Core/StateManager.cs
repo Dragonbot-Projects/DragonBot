@@ -3,7 +3,7 @@ using Nito.AsyncEx;
 
 namespace DragonBot.Core
 {
-    internal static class StateManager
+    public static class StateManager
     {
         public static async Task SaveState<T>(ModuleState<T> State)
         {
